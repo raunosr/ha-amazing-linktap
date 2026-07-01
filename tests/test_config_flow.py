@@ -20,7 +20,7 @@ async def test_user_flow_success(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.linktap.config_flow.LinkTapClient",
         return_value=build_mock_client(),
-    ):
+    ), patch("custom_components.linktap.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_USER}
         )
@@ -28,6 +28,7 @@ async def test_user_flow_success(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: "1.2.3.4"}
         )
+        await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == f"LinkTap {GW_ID}"
@@ -101,7 +102,7 @@ async def test_zeroconf_flow(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.linktap.config_flow.LinkTapClient",
         return_value=build_mock_client(),
-    ):
+    ), patch("custom_components.linktap.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_ZEROCONF}, data=discovery
         )

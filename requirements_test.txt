@@ -1,0 +1,2 @@
+pytest-homeassistant-custom-component==0.13.205
+zeroconf==0.150.0

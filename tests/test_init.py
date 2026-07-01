@@ -6,9 +6,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_HOST, STATE_UNAVAILABLE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    mock_restore_cache_with_extra_data,
+)
 
 from custom_components.linktap.const import DOMAIN
 from custom_components.linktap.push import LinkTapPushView
@@ -42,9 +45,9 @@ async def test_setup_creates_entities(hass: HomeAssistant) -> None:
 
     ent_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(ent_reg, entry.entry_id)
-    # 25 entities per device (1 valve + 1 switch + 3 numbers + 10 sensors
+    # 26 entities per device (1 valve + 1 switch + 3 numbers + 11 sensors
     # + 10 binary sensors) across 2 devices.
-    assert len(entities) == 50
+    assert len(entities) == 52
 
     valve_id = ent_reg.async_get_entity_id("valve", DOMAIN, f"{D1}_valve")
     assert valve_id is not None
@@ -108,6 +111,113 @@ async def test_valve_open_calls_start(hass: HomeAssistant) -> None:
     client.async_start.assert_awaited_once()
     args = client.async_start.await_args.args
     assert args[0] == GW_ID and args[1] == D1 and args[2] == 900
+
+
+async def test_valve_open_is_optimistic(hass: HomeAssistant) -> None:
+    """Opening keeps the valve 'open' even while the poll still reports idle."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    valve_id = ent_reg.async_get_entity_id("valve", DOMAIN, f"{D1}_valve")
+    assert hass.states.get(valve_id).state == "closed"
+
+    # The mock gateway still reports is_watering=False after the command (the
+    # physical valve has not actuated yet). Optimistic state must hold "open".
+    await hass.services.async_call(
+        "valve", "open_valve", {"entity_id": valve_id}, blocking=True
+    )
+    client.async_start.assert_awaited_once()
+    assert hass.states.get(valve_id).state == "open"
+
+
+async def test_total_volume_accumulates(hass: HomeAssistant) -> None:
+    """The total-volume sensor integrates per-cycle volume across cycles."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    total_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{D1}_volume_total")
+    assert total_id is not None
+    # First sample only sets the baseline (starting volume 12.0), adds nothing.
+    assert hass.states.get(total_id).state == "0.0"
+
+    view = LinkTapPushView(hass)
+    # Volume grows within the same cycle: 12 -> 20 adds 8.
+    resp = await view.post(
+        _mock_push_request(
+            {
+                "gw_id": GW_ID,
+                "dev_id": D1,
+                "is_flm_plugin": True,
+                "is_watering": True,
+                "volume": 20.0,
+            }
+        )
+    )
+    assert resp.status == 200
+    await hass.async_block_till_done()
+    assert hass.states.get(total_id).state == "8.0"
+
+    # A new cycle resets the per-cycle volume (20 -> 3), so all 3 are added.
+    resp = await view.post(
+        _mock_push_request(
+            {
+                "gw_id": GW_ID,
+                "dev_id": D1,
+                "is_flm_plugin": True,
+                "is_watering": True,
+                "volume": 3.0,
+            }
+        )
+    )
+    assert resp.status == 200
+    await hass.async_block_till_done()
+    assert hass.states.get(total_id).state == "11.0"
+
+
+async def test_total_volume_restores(hass: HomeAssistant) -> None:
+    """The running total is restored across restarts and keeps counting."""
+    mock_restore_cache_with_extra_data(
+        hass,
+        (
+            (
+                State("sensor.front_garden_total_volume", "5.0"),
+                {"native_value": 5.0, "native_unit_of_measurement": "L"},
+            ),
+        ),
+    )
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    total_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{D1}_volume_total")
+    assert total_id == "sensor.front_garden_total_volume"
+    # Restored total, and the first post-restore sample only re-baselines.
+    assert hass.states.get(total_id).state == "5.0"
+
+    view = LinkTapPushView(hass)
+    resp = await view.post(
+        _mock_push_request(
+            {
+                "gw_id": GW_ID,
+                "dev_id": D1,
+                "is_flm_plugin": True,
+                "is_watering": True,
+                "volume": 20.0,
+            }
+        )
+    )
+    assert resp.status == 200
+    await hass.async_block_till_done()
+    assert hass.states.get(total_id).state == "13.0"
+
+
+async def test_g1_total_volume_unavailable(hass: HomeAssistant) -> None:
+    """Devices without a flow meter report total volume as unavailable."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    total_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{D2}_volume_total")
+    assert total_id is not None
+    assert hass.states.get(total_id).state == STATE_UNAVAILABLE
 
 
 async def test_unload(hass: HomeAssistant) -> None:

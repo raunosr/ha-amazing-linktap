@@ -1,6 +1,6 @@
 {
     "domain": "linktap",
-    "name": "LinkTap (Local HTTP API)",
+    "name": "Amazing LinkTap",
     "codeowners": ["@raunosr"],
     "config_flow": true,
     "dependencies": ["http"],
@@ -10,7 +10,7 @@
     "issue_tracker": "https://github.com/raunosr/ha-amazing-linktap/issues",
     "loggers": ["custom_components.linktap"],
     "requirements": [],
-    "version": "0.1.0",
+    "version": "0.2.0",
     "zeroconf": [
         {
             "type": "_http._tcp.local.",

@@ -38,7 +38,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "LinkTap options",
+        "title": "Amazing LinkTap options",
         "data": {
           "poll_interval": "Poll interval while push is healthy (seconds)",
           "active_poll_interval": "Poll interval when push is unreachable (seconds)",
@@ -64,6 +64,7 @@
       "failsafe_duration": { "name": "Failsafe duration" },
       "speed": { "name": "Flow rate" },
       "volume": { "name": "Volume" },
+      "volume_total": { "name": "Total volume" },
       "volume_limit": { "name": "Volume limit" },
       "plan_mode": { "name": "Watering plan mode" },
       "plan_sn": { "name": "Watering plan serial" }

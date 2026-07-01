@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import voluptuous as vol
 from homeassistant.components.valve import (
     ValveDeviceClass,
@@ -13,6 +15,7 @@ from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import LinkTapConfigEntry
+from .const import OPTIMISTIC_WINDOW
 from .coordinator import LinkTapCoordinator
 from .entity import LinkTapEntity
 
@@ -60,13 +63,37 @@ class LinkTapValve(LinkTapEntity, ValveEntity):
     def __init__(self, coordinator: LinkTapCoordinator, dev_id: str) -> None:
         super().__init__(coordinator, dev_id)
         self._attr_unique_id = f"{dev_id}_valve"
+        # Optimistic state bridges the delay between issuing an open/close
+        # command and the gateway reporting that it started/stopped watering.
+        self._optimistic_is_closed: bool | None = None
+        self._optimistic_expiry: float = 0.0
 
-    @property
-    def is_closed(self) -> bool | None:
+    def _actual_is_closed(self) -> bool | None:
         status = self.status
         if status is None or status.is_watering is None:
             return None
         return not status.is_watering
+
+    @property
+    def is_closed(self) -> bool | None:
+        actual = self._actual_is_closed()
+        optimistic = self._optimistic_is_closed
+        if optimistic is not None:
+            if actual is not None and actual == optimistic:
+                # Gateway confirmed the requested state; drop the override.
+                self._optimistic_is_closed = None
+                return actual
+            if time.monotonic() < self._optimistic_expiry:
+                return optimistic
+            # Window elapsed without confirmation; fall back to reality.
+            self._optimistic_is_closed = None
+        return actual
+
+    def _set_optimistic(self, is_closed: bool) -> None:
+        """Assume the requested state until the gateway confirms it."""
+        self._optimistic_is_closed = is_closed
+        self._optimistic_expiry = time.monotonic() + OPTIMISTIC_WINDOW
+        self.async_write_ha_state()
 
     async def async_open_valve(self) -> None:
         """Start watering using the configured duration and volume limit."""
@@ -83,12 +110,14 @@ class LinkTapValve(LinkTapEntity, ValveEntity):
         await self.coordinator.client.async_start(
             self.coordinator.gw_id, self._dev_id, seconds, volume
         )
+        self._set_optimistic(False)
         await self.coordinator.async_request_refresh()
 
     async def async_close_valve(self) -> None:
         await self.coordinator.client.async_stop(
             self.coordinator.gw_id, self._dev_id
         )
+        self._set_optimistic(True)
         await self.coordinator.async_request_refresh()
 
     async def async_service_start_watering(
@@ -100,6 +129,7 @@ class LinkTapValve(LinkTapEntity, ValveEntity):
         await self.coordinator.client.async_start(
             self.coordinator.gw_id, self._dev_id, seconds, volume
         )
+        self._set_optimistic(False)
         await self.coordinator.async_request_refresh()
 
     async def async_service_pause(self, hours: int) -> None:

@@ -62,12 +62,16 @@ If push is not configured, the integration still works using polling.
 Devices without a flow meter (e.g. G1) report **flow speed / volume / total volume** as
 *unavailable* rather than misleading zeros.
 
-### Total volume (cumulative)
+### Volume vs. Total volume
 
-The gateway's local API only reports the volume of the **current** watering cycle, so there is
-no lifetime figure to read directly. The **Total volume** sensor integrates each cycle's volume
-in Home Assistant and persists across restarts (`state_class: total_increasing`), making it
-usable in the Energy dashboard or with a Utility Meter for daily/monthly periods.
+There are two separate water sensors:
+
+- **Volume** — the accumulated volume of the **current** watering cycle. It resets to zero at the
+  start of each cycle, so it is a plain reading (no long-term statistics).
+- **Total volume** — a lifetime **cumulative** figure. The gateway's local API has no lifetime
+  field, so this sensor integrates each cycle's volume in Home Assistant and persists across
+  restarts (`state_class: total_increasing`), making it usable in the Energy dashboard or with a
+  Utility Meter for daily/monthly periods.
 
 > Limitation: because the total is integrated from status snapshots, a very short cycle that
 > both starts and finishes between two updates can be under‑counted. Enabling push (above)

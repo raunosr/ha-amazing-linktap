@@ -54,6 +54,24 @@ async def test_setup_creates_entities(hass: HomeAssistant) -> None:
     assert hass.states.get(valve_id).state == "closed"
 
 
+async def test_volume_split_from_total(hass: HomeAssistant) -> None:
+    """Volume stays a plain current-cycle reading; Total volume is cumulative."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+
+    volume_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{D1}_volume")
+    volume = hass.states.get(volume_id)
+    # Original per-cycle value preserved, not overridden with the running total.
+    assert volume.state == "12.0"
+    # No state_class -> not treated as a cumulative long-term statistic.
+    assert volume.attributes.get("state_class") is None
+
+    total_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{D1}_volume_total")
+    total = hass.states.get(total_id)
+    assert total.attributes.get("state_class") == "total_increasing"
+
+
 async def test_g1_flow_sensors_unavailable(hass: HomeAssistant) -> None:
     """Devices without a flow meter report flow/volume as unavailable."""
     client = build_mock_client()

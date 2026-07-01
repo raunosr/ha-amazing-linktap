@@ -100,11 +100,13 @@ SENSORS: tuple[LinkTapSensorDescription, ...] = (
         icon="mdi:speedometer",
         value_fn=lambda s: s.speed,
     ),
+    # Current watering cycle volume (resets each cycle). Intentionally has no
+    # state_class so it stays a plain reading; the separate "Total volume"
+    # sensor owns the cumulative (total_increasing) long-term statistics.
     LinkTapSensorDescription(
         key="volume",
         translation_key="volume",
         device_class=SensorDeviceClass.WATER,
-        state_class=SensorStateClass.TOTAL_INCREASING,
         suggested_display_precision=1,
         unit_kind="volume",
         flm_only=True,

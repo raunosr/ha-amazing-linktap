@@ -17,9 +17,12 @@ from .const import (
     CMD_CONFIG,
     CMD_DISMISS_ALERT,
     CMD_PAUSE,
+    CMD_SET_CONFIG,
     CMD_START,
     CMD_STATUS,
     CMD_STOP,
+    CONFIG_TAG_DURATION_LIMIT,
+    CONFIG_TAG_VOLUME_LIMIT,
     DEFAULT_REQUEST_TIMEOUT,
     RETRY_ATTEMPTS,
 )
@@ -232,4 +235,41 @@ class LinkTapClient:
                     "enable": True,
                 }
             )
+        )
+
+    async def async_set_config(
+        self, gw_id: str, dev_id: str, tag: str, value: int
+    ) -> bool:
+        """Set a persistent per-device config value (cmd 17).
+
+        The gateway accepts exactly two tags: ``volume_limit`` (in the gateway's
+        volume unit) and ``total_duration`` (a duration limit, in seconds). The
+        ``value`` is always sent as an integer.
+        """
+        return self._check_ret(
+            await self._request(
+                {
+                    "cmd": CMD_SET_CONFIG,
+                    "gw_id": gw_id,
+                    "dev_id": dev_id,
+                    "tag": tag,
+                    "value": int(value),
+                }
+            )
+        )
+
+    async def async_set_volume_limit(
+        self, gw_id: str, dev_id: str, volume: float
+    ) -> bool:
+        """Set the persistent water volume limit (cmd 17, tag ``volume_limit``)."""
+        return await self.async_set_config(
+            gw_id, dev_id, CONFIG_TAG_VOLUME_LIMIT, int(volume)
+        )
+
+    async def async_set_duration_limit(
+        self, gw_id: str, dev_id: str, seconds: int
+    ) -> bool:
+        """Set the persistent watering duration limit (cmd 17, tag ``total_duration``)."""
+        return await self.async_set_config(
+            gw_id, dev_id, CONFIG_TAG_DURATION_LIMIT, int(seconds)
         )

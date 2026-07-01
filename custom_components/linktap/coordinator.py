@@ -15,6 +15,7 @@ from homeassistant.util import dt as dt_util
 from .api import LinkTapClient, LinkTapError
 from .const import (
     DEFAULT_ACTIVE_POLL_INTERVAL,
+    DEFAULT_DURATION_LIMIT_MIN,
     DEFAULT_DURATION_MIN,
     DEFAULT_PAUSE_HOURS,
     DEFAULT_POLL_INTERVAL,
@@ -57,6 +58,7 @@ class LinkTapCoordinator(DataUpdateCoordinator[dict[str, LinkTapDeviceStatus]]):
                 "duration_min": DEFAULT_DURATION_MIN,
                 "volume_limit": DEFAULT_VOLUME_LIMIT,
                 "pause_hours": DEFAULT_PAUSE_HOURS,
+                "duration_limit_min": DEFAULT_DURATION_LIMIT_MIN,
             }
             for dev_id in config.dev_ids
         }

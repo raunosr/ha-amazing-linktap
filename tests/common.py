@@ -77,4 +77,7 @@ def build_mock_client() -> MagicMock:
     client.async_stop = AsyncMock(return_value=True)
     client.async_pause = AsyncMock(return_value=True)
     client.async_dismiss_alert = AsyncMock(return_value=True)
+    client.async_set_config = AsyncMock(return_value=True)
+    client.async_set_volume_limit = AsyncMock(return_value=True)
+    client.async_set_duration_limit = AsyncMock(return_value=True)
     return client

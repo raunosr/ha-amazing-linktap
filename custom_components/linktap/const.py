@@ -16,7 +16,13 @@ CMD_START: Final = 6  # start instant watering
 CMD_STOP: Final = 7  # stop watering
 CMD_DISMISS_ALERT: Final = 10  # dismiss an alert
 CMD_CONFIG: Final = 16  # gateway configuration / device enumeration
+CMD_SET_CONFIG: Final = 17  # set a persistent per-device config value (SetDeviceConfigReq)
 CMD_PAUSE: Final = 18  # pause/unpause the watering plan
+
+# --- CMD_SET_CONFIG (cmd 17) tags ---
+# The gateway accepts exactly two persistent config tags (openHAB SetDeviceConfigReq).
+CONFIG_TAG_VOLUME_LIMIT: Final = "volume_limit"  # water volume limit (gateway vol_unit)
+CONFIG_TAG_DURATION_LIMIT: Final = "total_duration"  # watering duration limit (seconds)
 
 # --- Alert ids (CMD_DISMISS_ALERT `alert` field) ---
 ALERT_ALL: Final = 0
@@ -53,7 +59,9 @@ RETRY_ATTEMPTS: Final = 3
 DEFAULT_DURATION_MIN: Final = 15
 DEFAULT_VOLUME_LIMIT: Final = 0
 DEFAULT_PAUSE_HOURS: Final = 24
+DEFAULT_DURATION_LIMIT_MIN: Final = 0  # 0 = no persistent duration limit
 MAX_DURATION_MIN: Final = 1440
+MAX_DURATION_LIMIT_MIN: Final = MAX_DURATION_MIN
 MAX_PAUSE_HOURS: Final = 96
 
 # --- Volume unit handling ---

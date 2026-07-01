@@ -55,6 +55,7 @@
     "number": {
       "watering_duration": { "name": "Watering duration" },
       "volume_limit": { "name": "Volume limit" },
+      "duration_limit": { "name": "Duration limit" },
       "pause_duration": { "name": "Pause duration" }
     },
     "sensor": {

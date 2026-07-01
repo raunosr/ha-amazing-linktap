@@ -1,5 +1,9 @@
 # LinkTap — Local HTTP API (Home Assistant)
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![CI](https://github.com/raunosr/ha-amazing-linktap/actions/workflows/ci.yml/badge.svg)](https://github.com/raunosr/ha-amazing-linktap/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Control LinkTap gateways and their water timers (TapLinker, ValveLinker, D1) entirely
 over the gateway's **local HTTP API** (`/api.shtml` on your LAN). No cloud, no MQTT broker.
 
@@ -19,10 +23,20 @@ over the gateway's **local HTTP API** (`/api.shtml` on your LAN). No cloud, no M
 
 ## Installation (HACS)
 
-1. Add this repository as a custom repository in HACS (category: *Integration*).
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=raunosr&repository=ha-amazing-linktap&category=integration)
+
+1. Add this repository as a custom repository in HACS (category: *Integration*) — or use
+   the button above to open it directly in HACS.
 2. Install **LinkTap (Local HTTP API)** and restart Home Assistant.
 3. Go to **Settings → Devices & Services → Add Integration → LinkTap**. Discovered
    gateways appear automatically; otherwise enter the gateway IP/hostname.
+
+<details>
+<summary>Manual installation (without HACS)</summary>
+
+Copy the `custom_components/linktap` folder into your Home Assistant `config/custom_components`
+directory and restart Home Assistant.
+</details>
 
 ## Enabling push (recommended)
 
@@ -49,3 +63,7 @@ rather than misleading zeros.
 ## Disclaimer
 
 Not affiliated with LinkTap. Use of the gateway's HTTP API is at your own risk.
+
+## License
+
+Released under the [MIT License](LICENSE).

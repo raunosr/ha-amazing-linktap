@@ -1,0 +1,118 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Connect to LinkTap gateway",
+        "description": "Enter the IP address or hostname of your LinkTap gateway. Provide a username and password only if you have enabled access control on the gateway.",
+        "data": {
+          "host": "Host (IP or hostname)",
+          "username": "Username (optional)",
+          "password": "Password (optional)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Add discovered LinkTap gateway",
+        "description": "Do you want to add the LinkTap gateway {gw_id} at {host}?"
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate LinkTap gateway",
+        "description": "The gateway at {host} rejected the stored credentials. Enter the current username and password.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the gateway. Check the host and that the Local HTTP API is enabled.",
+      "invalid_auth": "Invalid username or password.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This gateway is already configured.",
+      "not_linktap": "Discovered device is not a LinkTap gateway.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "LinkTap options",
+        "data": {
+          "poll_interval": "Poll interval while push is healthy (seconds)",
+          "active_poll_interval": "Poll interval when push is unreachable (seconds)",
+          "request_timeout": "Request timeout (seconds)",
+          "vol_unit": "Volume unit override (leave blank to use the gateway's setting)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "pause": { "name": "Pause" }
+    },
+    "number": {
+      "watering_duration": { "name": "Watering duration" },
+      "volume_limit": { "name": "Volume limit" },
+      "pause_duration": { "name": "Pause duration" }
+    },
+    "sensor": {
+      "signal": { "name": "Signal" },
+      "total_duration": { "name": "Total duration" },
+      "remain_duration": { "name": "Remaining duration" },
+      "failsafe_duration": { "name": "Failsafe duration" },
+      "speed": { "name": "Flow rate" },
+      "volume": { "name": "Volume" },
+      "volume_limit": { "name": "Volume limit" },
+      "plan_mode": { "name": "Watering plan mode" },
+      "plan_sn": { "name": "Watering plan serial" }
+    },
+    "binary_sensor": {
+      "is_watering": { "name": "Watering" },
+      "is_manual_mode": { "name": "Manual mode" },
+      "is_rf_linked": { "name": "Linked" },
+      "is_flm_plugin": { "name": "Flow meter" },
+      "is_paused": { "name": "Paused" },
+      "alert_fall": { "name": "Fall alert" },
+      "alert_cutoff": { "name": "Water cut-off alert" },
+      "alert_leak": { "name": "Leak alert" },
+      "alert_clog": { "name": "Clog alert" },
+      "alert_broken": { "name": "Valve shutdown alert" }
+    }
+  },
+  "services": {
+    "start_watering": {
+      "name": "Start watering",
+      "description": "Start instant watering for a duration, with an optional volume limit (flow-meter devices only).",
+      "fields": {
+        "seconds": {
+          "name": "Duration",
+          "description": "How long to water, in seconds."
+        },
+        "volume": {
+          "name": "Volume limit",
+          "description": "Optional volume limit; watering stops when reached (flow-meter devices only)."
+        }
+      }
+    },
+    "pause": {
+      "name": "Pause watering plan",
+      "description": "Pause the watering plan for a number of hours. Use 0 to unpause.",
+      "fields": {
+        "hours": {
+          "name": "Hours",
+          "description": "Number of hours to pause; 0 unpauses."
+        }
+      }
+    },
+    "dismiss_alert": {
+      "name": "Dismiss alert",
+      "description": "Dismiss the alert represented by the selected binary sensor."
+    },
+    "dismiss_alerts": {
+      "name": "Dismiss all alerts",
+      "description": "Dismiss all alerts for the device of the selected binary sensor."
+    }
+  }
+}

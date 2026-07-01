@@ -31,7 +31,7 @@ async def test_user_flow_success(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == f"LinkTap {GW_ID}"
+    assert result["title"] == f"Amazing LinkTap {GW_ID}"
     assert result["result"].unique_id == GW_ID
     assert result["data"][CONF_HOST] == "1.2.3.4"
 

@@ -1,4 +1,4 @@
-# LinkTap — Local HTTP API (Home Assistant)
+# Amazing LinkTap — Local HTTP API (Home Assistant)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![CI](https://github.com/raunosr/ha-amazing-linktap/actions/workflows/ci.yml/badge.svg)](https://github.com/raunosr/ha-amazing-linktap/actions/workflows/ci.yml)
@@ -27,8 +27,8 @@ over the gateway's **local HTTP API** (`/api.shtml` on your LAN). No cloud, no M
 
 1. Add this repository as a custom repository in HACS (category: *Integration*) — or use
    the button above to open it directly in HACS.
-2. Install **LinkTap (Local HTTP API)** and restart Home Assistant.
-3. Go to **Settings → Devices & Services → Add Integration → LinkTap**. Discovered
+2. Install **Amazing LinkTap** and restart Home Assistant.
+3. Go to **Settings → Devices & Services → Add Integration → Amazing LinkTap**. Discovered
    gateways appear automatically; otherwise enter the gateway IP/hostname.
 
 <details>
@@ -54,11 +54,22 @@ If push is not configured, the integration still works using polling.
 | `valve` | Watering valve | Open starts watering using the Duration / Volume Limit numbers |
 | `switch` | Pause | Pauses the watering plan for the Pause Duration hours |
 | `number` | Watering Duration, Volume Limit, Pause Duration | Inputs consumed by the valve |
-| `sensor` | Signal, Battery, durations, flow speed, volume, plan info | |
+| `sensor` | Signal, Battery, durations, flow speed, volume, total volume, plan info | |
 | `binary_sensor` | Watering, manual mode, linked, flow meter, paused, alerts | |
 
-Devices without a flow meter (e.g. G1) report **flow speed / volume** as *unavailable*
-rather than misleading zeros.
+Devices without a flow meter (e.g. G1) report **flow speed / volume / total volume** as
+*unavailable* rather than misleading zeros.
+
+### Total volume (cumulative)
+
+The gateway's local API only reports the volume of the **current** watering cycle, so there is
+no lifetime figure to read directly. The **Total volume** sensor integrates each cycle's volume
+in Home Assistant and persists across restarts (`state_class: total_increasing`), making it
+usable in the Energy dashboard or with a Utility Meter for daily/monthly periods.
+
+> Limitation: because the total is integrated from status snapshots, a very short cycle that
+> both starts and finishes between two updates can be under‑counted. Enabling push (above)
+> minimises this, since the gateway reports on every change.
 
 ## Disclaimer
 

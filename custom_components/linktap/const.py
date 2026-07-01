@@ -64,6 +64,12 @@ VOL_UNIT_GALLONS: Final = "Gal"
 # --- Push view ---
 PUSH_URL: Final = "/api/linktap/push"
 
+# Hold a valve's requested (optimistic) open/closed state for this long after an
+# open/close command, until the gateway confirms it started/stopped watering.
+# The physical valve takes a moment to actuate, so an immediate status poll still
+# reports the old state; without this the UI toggle would flicker back.
+OPTIMISTIC_WINDOW: Final = 30.0
+
 # --- Watering plan modes (status `plan_mode`) ---
 PLAN_MODES: Final = [
     "N/A",

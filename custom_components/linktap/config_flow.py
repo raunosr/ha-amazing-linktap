@@ -103,7 +103,7 @@ class LinkTapConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(gw_id)
                 self._abort_if_unique_id_configured(updates={CONF_HOST: host})
                 return self.async_create_entry(
-                    title=f"LinkTap {gw_id}", data=user_input
+                    title=f"Amazing LinkTap {gw_id}", data=user_input
                 )
 
         return self.async_show_form(
@@ -130,7 +130,7 @@ class LinkTapConfigFlow(ConfigFlow, domain=DOMAIN):
 
         self._host = host
         self._gw_id = gw_id
-        self.context["title_placeholders"] = {"name": f"LinkTap {gw_id}"}
+        self.context["title_placeholders"] = {"name": f"Amazing LinkTap {gw_id}"}
         return await self.async_step_zeroconf_confirm()
 
     async def async_step_zeroconf_confirm(
@@ -149,7 +149,7 @@ class LinkTapConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             else:
                 return self.async_create_entry(
-                    title=f"LinkTap {gw_id}", data={CONF_HOST: self._host}
+                    title=f"Amazing LinkTap {gw_id}", data={CONF_HOST: self._host}
                 )
 
         return self.async_show_form(

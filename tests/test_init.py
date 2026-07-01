@@ -45,9 +45,9 @@ async def test_setup_creates_entities(hass: HomeAssistant) -> None:
 
     ent_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(ent_reg, entry.entry_id)
-    # 26 entities per device (1 valve + 1 switch + 3 numbers + 11 sensors
+    # 27 entities per device (1 valve + 1 switch + 4 numbers + 11 sensors
     # + 10 binary sensors) across 2 devices.
-    assert len(entities) == 52
+    assert len(entities) == 54
 
     valve_id = ent_reg.async_get_entity_id("valve", DOMAIN, f"{D1}_valve")
     assert valve_id is not None
@@ -146,6 +146,55 @@ async def test_valve_open_is_optimistic(hass: HomeAssistant) -> None:
     )
     client.async_start.assert_awaited_once()
     assert hass.states.get(valve_id).state == "open"
+
+
+async def test_volume_limit_number_pushes_config(hass: HomeAssistant) -> None:
+    """Changing the Volume limit number pushes it to the gateway (cmd 17)."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    number_id = ent_reg.async_get_entity_id("number", DOMAIN, f"{D1}_volume_limit")
+    assert number_id is not None
+
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": number_id, "value": 5}, blocking=True
+    )
+    client.async_set_config.assert_awaited_once()
+    args = client.async_set_config.await_args.args
+    assert args[0] == GW_ID and args[1] == D1
+    assert args[2] == "volume_limit" and args[3] == 5
+
+
+async def test_volume_limit_skipped_without_flow_meter(hass: HomeAssistant) -> None:
+    """A meter-less device (G1) does not push a volume limit to the gateway."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    number_id = ent_reg.async_get_entity_id("number", DOMAIN, f"{D2}_volume_limit")
+    assert number_id is not None
+
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": number_id, "value": 5}, blocking=True
+    )
+    client.async_set_config.assert_not_awaited()
+
+
+async def test_duration_limit_number_pushes_seconds(hass: HomeAssistant) -> None:
+    """The Duration limit number pushes total_duration in seconds (cmd 17)."""
+    client = build_mock_client()
+    await _setup(hass, client)
+    ent_reg = er.async_get(hass)
+    number_id = ent_reg.async_get_entity_id("number", DOMAIN, f"{D1}_duration_limit")
+    assert number_id is not None
+
+    await hass.services.async_call(
+        "number", "set_value", {"entity_id": number_id, "value": 30}, blocking=True
+    )
+    client.async_set_config.assert_awaited_once()
+    args = client.async_set_config.await_args.args
+    assert args[0] == GW_ID and args[1] == D1
+    # 30 minutes -> 1800 seconds.
+    assert args[2] == "total_duration" and args[3] == 1800
 
 
 async def test_total_volume_accumulates(hass: HomeAssistant) -> None:

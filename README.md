@@ -55,7 +55,7 @@ If push is not configured, the integration still works using polling.
 |---|---|---|
 | `valve` | Watering valve | Open starts watering using the Duration / Volume Limit numbers |
 | `switch` | Pause | Pauses the watering plan for the Pause Duration hours |
-| `number` | Watering Duration, Volume Limit, Pause Duration | Inputs consumed by the valve |
+| `number` | Watering Duration, Volume Limit, Duration Limit, Pause Duration | Inputs consumed by the valve; Volume/Duration Limit are also pushed to the gateway |
 | `sensor` | Signal, Battery, durations, flow speed, volume, total volume, plan info | |
 | `binary_sensor` | Watering, manual mode, linked, flow meter, paused, alerts | |
 
@@ -76,6 +76,23 @@ There are two separate water sensors:
 > Limitation: because the total is integrated from status snapshots, a very short cycle that
 > both starts and finishes between two updates can be under‑counted. Enabling push (above)
 > minimises this, since the gateway reports on every change.
+
+### Volume limit, Duration limit & failsafe
+
+- **Volume Limit** (number) sets a **persistent** water volume limit on the device via the local
+  API (`cmd 17`). Changing it is pushed to the gateway, so the diagnostic **Volume limit** sensor
+  reflects the new value after the next update. It is still applied to manual watering started from
+  the valve. On flow-meter-less devices (e.g. G1) it is a no‑op and is not pushed.
+- **Duration Limit** (number, minutes) sets a **persistent** duration limit on the device via the
+  local API (`cmd 17`, `total_duration`). It is pushed on change and stored in seconds on the
+  gateway.
+- **Failsafe duration** is **read-only** over the local HTTP API — the gateway exposes no command to
+  set it, so it can only be changed in the LinkTap mobile app. The **Duration Limit** control above
+  is the closest local-API equivalent; whether it also moves the reported *failsafe* value is
+  hardware/firmware-dependent and unverified, so treat it as experimental.
+
+> Note: a persistent volume/duration limit set via `cmd 17` may also cap **scheduled** watering
+> plans, not just manual watering.
 
 ## Disclaimer
 

@@ -1,3 +1,5 @@
+<img src="images/icon.png" alt="Amazing LinkTap" width="128" align="right" />
+
 # Amazing LinkTap — Local HTTP API (Home Assistant)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
